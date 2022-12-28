@@ -26,3 +26,12 @@ void push_back(Point **last, double t_, double x_, double p_); // добавле
 void clear_list(Point **head); // очистка списка 
 void print_list(const Point *head); // печать списка в терминале 
 void fprint_list(const Point *head, FILE *fp); // печать списка в файл 
+
+double f1(double x_1, double x_2, double p_1, double p_2, double t, double alpha); // правая часть первого уравнения краевой задачи 
+double f2(double x_1, double x_2, double p_1, double p_2, double t, double alpha); // правая часть 2ого уравнения краевой задачи 
+double f3(double x_1, double x_2, double p_1, double p_2, double t, double alpha); // правая часть 3его уравнения краевой задачи 
+double f4(double x_1, double x_2, double p_1, double p_2, double t, double alpha); // правая часть 4ого уравнения краевой задачи 
+
+double RungeKutta(Point** head, double x0, double p0, double alpha); // метод Рунге Кутты пятого порядка, с формулами построенными Инглэндом стр 31-32 Арушанян 
+double find_p0(double x0, double alpha); // поиск краевого условия методом пристрелки с помощью Ньютона 
+double Integral(Point* head); // подсчет интеграла 
