@@ -1,20 +1,25 @@
 #include "method.hpp"
 
+
 int main(int argc, char *argv[])
 {
-    double h, alpha, x2, p1, p2, B;
+    double alpha, x2_0, p1_0;
+    double p2_1, x1_1, x2_1, p1_1;
     double error;
-    Point *head = (Point *)malloc(sizeof(head));
+    Point *head = (Point*)malloc(sizeof(head));
 
-    printf("Введите параметр a: ");
+    printf("Alpha: ");
     scanf("%lf", &alpha);
 
-    x2 = find_x2_or_p1(X_10, P_2, alpha, 0);
-    p1 = find_x2_or_p1(X_10, P_2, alpha, 1);
+    find_x2_or_p1(p1_0, x2_0, alpha);
 
-     RungeKutta(&head, X_10, x2, p1, P_2, alpha, 0);
+    RungeKutta();
+    
+    printf("p1(0) = %.9f; x2(0) = %.9f\n", p1_0, x2_0);
+    // printf("p2(1) = %.9f; p1(1) = %.9f\n", p2_1, p1_1);
+    // printf("x1(1) = %.9f; x2(1) = %.9f\n", x1_1, x2_1);
 
-    printf("Integral = %.11f\n", Integral(head));
+    printf("Integral = %.11f\n", Integral(head, alpha));
 
     clear_list(&head);
     return 0;
