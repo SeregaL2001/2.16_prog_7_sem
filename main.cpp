@@ -11,15 +11,15 @@ int main(int argc, char *argv[])
     printf("Alpha: ");
     scanf("%lf", &alpha);
 
-    find_x2_or_p1(p1_0, x2_0, alpha);
+    calc_p10_n_x20(p1_0, x2_0, P21, P11, alpha);
 
-    RungeKutta();
-    
-    printf("p1(0) = %.9f; x2(0) = %.9f\n", p1_0, x2_0);
+    RungeKutta(&head, p1_0, x2_0, p2_1, x1_1, x2_1, p1_1, alpha);
+
+    printf("x2(0) = %.9f; p1(0) = %.9f\n", x2_0, p1_0);
     // printf("p2(1) = %.9f; p1(1) = %.9f\n", p2_1, p1_1);
     // printf("x1(1) = %.9f; x2(1) = %.9f\n", x1_1, x2_1);
 
-    printf("Integral = %.11f\n", Integral(head, alpha));
+    printf("Integral = %.6f\n", Integral(head));
 
     clear_list(&head);
     return 0;

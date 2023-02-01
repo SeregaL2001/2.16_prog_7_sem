@@ -7,17 +7,17 @@
 
 #define EPS 1e-13
 #define EPS1 1e-10
-#define P_1 0 // p1(1) = 0
-#define P_2 0 // p2(1) = 0
-#define X_10 1 //
+ #define P11 0 // p1(1) = 0
+ #define P21 0 // p2(1) = 0
+// #define X_10 1 //
 #define DELTA 1e-6
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-#define NEWTON_METHOD_START_VALUE_x_20 -1.22565282
-#define NEWTON_METHOD_START_VALUE_p_10 -0.274772803
+#define NEWTON_METHOD_START_B1 -0.274772803
+#define NEWTON_METHOD_START_B2 -1.22565282
 
 typedef struct Point
 {
@@ -48,6 +48,13 @@ double norma_2(double a, double b);
 double norma_4(double x1, double x2, double p1, double p2);
 double norma_fedorenko(double *J, double F0, double F1);
 
-void RungeKutta(Point **head, double x1_0, double x2_0, double p1_0, double p2_0, double alpha); // метод Рунге Кутты пятого порядка, с формулами построенными Инглэндом стр 31-32 Арушанян 
-void find_x2_or_p1(double &B1, double &B2, double alpha); // поиск краевого условия методом пристрелки с помощью Ньютона 
-double Integral(Point *head, double alpha); // подсчет интеграла 
+Koef F(double t, Koef Y, double alpha); // система ОДУ для задачи Коши 
+Koef mult_koef(Koef Y, double b, Koef X, double a); 
+Koef h_koef(double h, Koef Y);
+double norma_koef(Koef Y);
+
+void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, double &X2_1, double &P1_1, double alpha); // метод Рунге Кутты пятого порядка, с формулами построенными Инглэндом стр 31-32 Арушанян
+void RungeKutta_sup(Point** head, double B1, double B2, double alpha, double& P2_1, double& P1_1);
+//void calc_p10_n_x20(double& B1_ret, double& B2_ret, double alpha); 
+void calc_p10_n_x20(double& B1_return, double& B2_return, double P2_1, double P1_1, double alpha); // поиск краевого условия методом пристрелки с помощью Ньютона
+double Integral(Point *head); // подсчет интеграла 
