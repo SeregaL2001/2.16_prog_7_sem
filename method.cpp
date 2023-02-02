@@ -46,7 +46,7 @@ Koef F(double t, Koef Y, double alpha)
     return ret;
 }
 
-
+// умноженение на const и сложение между собой 
 Koef mult_koef(Koef Y, double b, Koef X, double a)
 {
     Koef ret;
@@ -57,6 +57,7 @@ Koef mult_koef(Koef Y, double b, Koef X, double a)
     return ret;
 }
 
+// умножение на h 
 Koef h_koef(double h, Koef Y)
 {
     Koef ret;
@@ -76,14 +77,14 @@ double norma_koef(Koef Y)
 // метод РК основной
 void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, double &X2_1, double &P1_1, double alpha)
 {
-    double border = 0.001;
+    double upper_border = 0.001;
     double lower_border = EPS;
-    double h = border;
+    double h = upper_border;
 
     Koef next, half_next;
     Koef k1, k2, k3, k4, k5, k6;
-    Koef y, y0;
-
+    Koef y;
+    
     double start_t;
     double half_next_t;
 
@@ -104,6 +105,7 @@ void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, 
 
     double puff;
 
+    // первые шаги итерраций, длина шага переменная 
     while ((1. - last->t - h) > EPS)
     {
         halt = true;
@@ -153,7 +155,7 @@ void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, 
                 halt = false;
                 push_back(&last, start_t + h, next.x1, next.x2, next.p1, next.p2);
 
-                if ((check < (EPS * 0.03125)) && (h * 2. <= border)) {
+                if ((check < (EPS * (1/32))) && (h * 2. <= upper_border)) {
                     h = 2. * h;
                 }
             }
@@ -168,6 +170,7 @@ void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, 
         }
     }
 
+    // последний шаг итеррации, его длина фикс
     h = 1. - last->t;
     if (h > EPS) {
         y.x1 = last->x1;
@@ -182,8 +185,8 @@ void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, 
         k4 = h_koef(h, F(start_t + h, mult_koef(y, 1., mult_koef(k2, 1., k3, -2.), -1.), alpha));
         k5 = h_koef(h, F(start_t + (2. / 3.) * h, mult_koef(y, 1., mult_koef(k1, 7., mult_koef(k2, 10., k4, 1.), 1.), 1. / 27.), alpha));
         k6 = h_koef(h, F(start_t + 0.2 * h, mult_koef(y, 1., mult_koef(k1, 28., mult_koef(k2, -125., mult_koef(k3, 546., mult_koef(k4, 54., k5, -378.), 1.), 1.), 1.), 0.0016), alpha));
+       
         next = mult_koef(y, 1., mult_koef(k1, 1. / 24., mult_koef(k4, 5. / 48., mult_koef(k5, 27. / 56., k6, 125. / 336.), 1.), 1.), 1.);
-
         push_back(&last, 1., next.x1, next.x2, next.p1, next.p2);
     }
 
@@ -197,18 +200,125 @@ void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, 
 // вспомогательный РК для метода пристрелки Ньютона
 void RungeKutta_sup(Point** head, double B1, double B2, double alpha, double &P2_1, double &P1_1)
 {
-   
-}
+       double upper_border = 0.001;
+    double lower_border = EPS;
+    double h = upper_border;
 
-// рещение Итерационной процедуры Ньютона в многомерном случае в явном виде см скрин 
-void matr_plus_mult(double &B1, double &B2, double P2_1, double X1_1, double *D)
-{
-    B1 = B1 - (D[0] * X1_1 + D[1] * P2_1);
-    B2 = B2 - (D[2] * X1_1 + D[3] * P2_1);
+    Koef next, half_next;
+    Koef k1, k2, k3, k4, k5, k6;
+    Koef y;
+    
+    double start_t;
+    double half_next_t;
+
+    Point *last;
+
+    Point *pt = (Point*)malloc(sizeof(Point));
+    pt->t = 0.;
+    pt->x1 = 1.;
+    pt->x2 = B2;
+    pt->p1 = B1;
+    pt->p2 = 0.;
+    pt->next = NULL;
+    (*head) = pt;
+    last = pt;
+
+    bool halt;
+    double check;
+
+    double puff;
+
+    // первые шаги итерраций, длина шага переменная 
+    while ((1. - last->t - h) > EPS)
+    {
+        halt = true;
+        while (halt) 
+        {
+            y.x1 = last->x1;
+            y.x2 = last->x2;
+            y.p1 = last->p1;
+            y.p2 = last->p2;
+            start_t = last->t;
+
+            // двигаемся на шаг h из начала 
+            k1 = h_koef(h, F(start_t, y, alpha));
+            k2 = h_koef(h, F(start_t + 0.5 * h, mult_koef(y, 1., k1, 0.5), alpha));
+            k3 = h_koef(h, F(start_t + 0.5 * h, mult_koef(y, 1., mult_koef(k1, 1., k2, 1.), 0.25), alpha));
+            k4 = h_koef(h, F(start_t + h, mult_koef(y, 1., mult_koef(k2, 1., k3, -2.), -1.), alpha));
+            k5 = h_koef(h, F(start_t + (2. / 3.) * h, mult_koef(y, 1., mult_koef(k1, 7., mult_koef(k2, 10., k4, 1.), 1.), 1. / 27.), alpha));
+            k6 = h_koef(h, F(start_t + 0.2 * h, mult_koef(y, 1., mult_koef(k1, 28., mult_koef(k2, -125., mult_koef(k3, 546., mult_koef(k4, 54., k5, -378.), 1.), 1.), 1.), 0.0016), alpha));
+
+            next = mult_koef(y, 1., mult_koef(k1, 1. / 24., mult_koef(k4, 5. / 48., mult_koef(k5, 27. / 56., k6, 125. / 336.), 1.), 1.), 1.);
+
+            // двигаемся на шаг h/2 из начала 
+            k1 = h_koef(h * 0.5, F(start_t, y, alpha));
+            k2 = h_koef(h * 0.5, F(start_t + 0.25 * h, mult_koef(y, 1., k1, 0.5), alpha));
+            k3 = h_koef(h * 0.5, F(start_t + 0.25 * h, mult_koef(y, 1., mult_koef(k1, 1., k2, 1.), 0.25), alpha));
+            k4 = h_koef(h * 0.5, F(start_t + 0.5 * h, mult_koef(y, 1., mult_koef(k2, 1., k3, -2.), -1.), alpha));
+            k5 = h_koef(h * 0.5, F(start_t + (1. / 3.) * h, mult_koef(y, 1., mult_koef(k1, 7., mult_koef(k2, 10., k4, 1.), 1.), 1. / 27.), alpha));
+            k6 = h_koef(h * 0.5, F(start_t + 0.1 * h, mult_koef(y, 1., mult_koef(k1, 28., mult_koef(k2, -125., mult_koef(k3, 546., mult_koef(k4, 54., k5, -378.), 1.), 1.), 1.), 0.0016), alpha));
+
+            half_next = mult_koef(y, 1., mult_koef(k1, 1. / 24., mult_koef(k4, 5. / 48., mult_koef(k5, 27. / 56., k6, 125. / 336.), 1.), 1.), 1.);
+            half_next_t = start_t + 0.5 * h;
+            y = half_next;
+
+            // двигаемся еще на шаг h/2 из полученной точки 
+            k1 = h_koef(h * 0.5, F(half_next_t, y, alpha));
+            k2 = h_koef(h * 0.5, F(half_next_t + 0.25 * h, mult_koef(y, 1., k1, 0.5), alpha));
+            k3 = h_koef(h * 0.5, F(half_next_t + 0.25 * h, mult_koef(y, 1., mult_koef(k1, 1., k2, 1.), 0.25), alpha));
+            k4 = h_koef(h * 0.5, F(half_next_t + 0.5 * h, mult_koef(y, 1., mult_koef(k2, 1., k3, -2.), -1.), alpha));
+            k5 = h_koef(h * 0.5, F(half_next_t + (1. / 3.) * h, mult_koef(y, 1., mult_koef(k1, 7., mult_koef(k2, 10., k4, 1.), 1.), 1. / 27.), alpha));
+            k6 = h_koef(h * 0.5, F(half_next_t + 0.1 * h, mult_koef(y, 1., mult_koef(k1, 28., mult_koef(k2, -125., mult_koef(k3, 546., mult_koef(k4, 54., k5, -378.), 1.), 1.), 1.), 0.0016), alpha));
+
+            half_next = mult_koef(y, 1., mult_koef(k1, 1. / 24., mult_koef(k4, 5. / 48., mult_koef(k5, 27. / 56., k6, 125. / 336.), 1.), 1.), 1.);
+            check = (32. * norma_koef(mult_koef(next, 1., half_next, -1.))) / 31.;
+
+            // выбор шага 
+            if (check <= EPS) {
+                halt = false;
+                push_back(&last, start_t + h, next.x1, next.x2, next.p1, next.p2);
+
+                if ((check < (EPS * (1/32))) && (h * 2. <= upper_border)) {
+                    h = 2. * h;
+                }
+            }
+            else if (h * 0.5 < lower_border) {
+                halt = false;
+                push_back(&last, start_t + h, next.x1, next.x2, next.p1, next.p2);
+            }
+            else {
+                h /= 2.;
+            }
+
+        }
+    }
+
+    // последний шаг итеррации, его длина фикс
+    h = 1. - last->t;
+    if (h > EPS) {
+        y.x1 = last->x1;
+        y.x2 = last->x2;
+        y.p1 = last->p1;
+        y.p2 = last->p2;
+        start_t = last->t;
+
+        k1 = h_koef(h, F(start_t, y, alpha));
+        k2 = h_koef(h, F(start_t + 0.5 * h, mult_koef(y, 1., k1, 0.5), alpha));
+        k3 = h_koef(h, F(start_t + 0.5 * h, mult_koef(y, 1., mult_koef(k1, 1., k2, 1.), 0.25), alpha));
+        k4 = h_koef(h, F(start_t + h, mult_koef(y, 1., mult_koef(k2, 1., k3, -2.), -1.), alpha));
+        k5 = h_koef(h, F(start_t + (2. / 3.) * h, mult_koef(y, 1., mult_koef(k1, 7., mult_koef(k2, 10., k4, 1.), 1.), 1. / 27.), alpha));
+        k6 = h_koef(h, F(start_t + 0.2 * h, mult_koef(y, 1., mult_koef(k1, 28., mult_koef(k2, -125., mult_koef(k3, 546., mult_koef(k4, 54., k5, -378.), 1.), 1.), 1.), 0.0016), alpha));
+       
+        next = mult_koef(y, 1., mult_koef(k1, 1. / 24., mult_koef(k4, 5. / 48., mult_koef(k5, 27. / 56., k6, 125. / 336.), 1.), 1.), 1.);
+        push_back(&last, 1., next.x1, next.x2, next.p1, next.p2);
+    }
+   
+    P2_1 = last->p2;
+    P1_1 = last->p1;
 }
 
 // поиск обратной матрицы 
-void revers_matr(double *M)
+void revers_matrix(double *M)
 {
     double A = M[0];
     double B = M[1];
@@ -225,5 +335,84 @@ void revers_matr(double *M)
 // поиск недостающих краевых пристрелкой методом Ньютона 
 void calc_p10_n_x20(double& B1_return, double& B2_return, double P2_1, double P1_1, double alpha)
 {
- 
+    double *D = (double*)malloc(4 * sizeof(double));
+    D[0] = D[3] = 1;
+    D[1] = D[2] = 0;
+
+    double B1 = NEWTON_METHOD_START_B1;
+    double B2 = NEWTON_METHOD_START_B2;
+
+    double B1_plus_P, B1_plus_X, B1_minus_P, B1_minus_X;
+    double B2_plus_P, B2_plus_X, B2_minus_P, B2_minus_X;
+
+    Point* head;
+    double norm;
+    double puffer;
+
+    // Так как область сходимости метода Ньютона маленькая, то мы можем не угадать с выбором стартового значения для конкретного альфа, поэтому
+    // разбиваем отрезок (от стартовой точки до искомой), нанпример, на 10 точек и показываем что метод Ньютона сход в каждой окрестоности этих точек (по непрерывности интеграла как функции от альфа),
+    // причем каждая такая открестность содержит центр предыдущей окрестности 
+     for (int i = 1; i < 10; i ++ ) 
+     {
+
+        double a = i * alpha / 9.;
+
+    do
+    {
+        // решение итерационной процедуры Ньютона в многомерном случае в явном виде см скрин
+        B1 = B1 - (D[0] * P1_1 + D[1] * P2_1);
+        B2 = B2 - (D[2] * P1_1 + D[3] * P2_1);
+        
+        head = (Point*)malloc(sizeof(Point));
+        RungeKutta_sup(&head, B1, B2, a, P2_1, P1_1); // на каждом шаге p2(1), p1(1) меняются 
+        clear_list(&head);
+
+        head = (Point*)malloc(sizeof(Point));
+        RungeKutta_sup(&head, B1 - EPS1, B2, a, B1_minus_P, B1_minus_X);
+        clear_list(&head);
+
+        head = (Point*)malloc(sizeof(Point));
+        RungeKutta_sup(&head, B1 + EPS1, B2, a, B1_plus_P, B1_plus_X);
+        clear_list(&head);
+
+        head = (Point*)malloc(sizeof(Point));
+        RungeKutta_sup(&head, B1, B2 - EPS1, a, B2_minus_P, B2_minus_X);
+        clear_list(&head);
+
+        head = (Point*)malloc(sizeof(Point));
+        RungeKutta_sup(&head, B1, B2 + EPS1, a, B2_plus_P, B2_plus_X);
+        clear_list(&head);
+
+        // подсчет матрицы Якоби центральных производных 
+        D[0] = (B1_plus_X - B1_minus_X) / (2 * EPS1);
+        D[1] = (B2_plus_X - B2_minus_X) / (2 * EPS1);
+        D[2] = (B1_plus_P - B1_minus_P) / (2 * EPS1);
+        D[3] = (B2_plus_P - B2_minus_P) / (2 * EPS1);
+        
+        norm = norma_fedorenko(D, P1_1 - 0., P2_1 - 0.); 
+        revers_matrix(D);
+
+    } while (norm > EPS);
+
+     }
+
+    B1_return = B1;
+    B2_return = B2;
+}
+
+double Integral(Point *head)
+{
+    double f_a, f_b, t_1, t_0;
+    double res = 0;
+    while (head->next)
+    {
+        t_1 = head->next->t;
+        t_0 = head->t;
+        f_a = pow(head->x1, 2.) + pow(head->p2, 2.);
+        f_b = pow(head->next->x1, 2.) + pow(head->next->p2, 2.);
+
+        res = res + (f_a + f_b) * (t_1 - t_0) / 2.;
+        head = head->next;
+    }
+    return res;
 }
