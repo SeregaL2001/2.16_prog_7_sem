@@ -75,7 +75,7 @@ double norma_koef(Koef Y)
 }
 
 // метод РК основной
-void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, double &X2_1, double &P1_1, double alpha)
+void RungeKutta(Point **head, double B1, double B2, double &P2_0, double &X1_0, double &X2_1, double &P1_1, double alpha)
 {
     double upper_border = 0.001;
     double lower_border = EPS;
@@ -190,15 +190,15 @@ void RungeKutta(Point **head, double B1, double B2, double &P2_1, double &X1_1, 
         push_back(&last, 1., next.x1, next.x2, next.p1, next.p2);
     }
 
-    P2_1 = last->p2;
-    X1_1 = last->x1;
+    P2_0 = last->p2;
+    X1_0 = last->x1;
 
     X2_1 = last->x2;
     P1_1 = last->p1;
 }
 
 // вспомогательный РК для метода пристрелки Ньютона
-void RungeKutta_sup(Point** head, double B1, double B2, double alpha, double &P2_1, double &P1_1)
+void RungeKutta_sup(Point** head, double B1, double B2, double alpha, double &X2_1, double &P1_1)
 {
        double upper_border = 0.001;
     double lower_border = EPS;
@@ -313,7 +313,7 @@ void RungeKutta_sup(Point** head, double B1, double B2, double alpha, double &P2
         push_back(&last, 1., next.x1, next.x2, next.p1, next.p2);
     }
    
-    P2_1 = last->p2;
+    X2_1 = last->p2;
     P1_1 = last->p1;
 }
 
@@ -333,7 +333,7 @@ void revers_matrix(double *M)
 }
 
 // поиск недостающих краевых пристрелкой методом Ньютона 
-void calc_p10_n_x20(double& B1_return, double& B2_return, double P2_1, double P1_1, double alpha)
+void calc_p10_n_x20(double &B1_return, double &B2_return, double X2_1, double P1_1, double alpha)
 {
     double *D = (double*)malloc(4 * sizeof(double));
     D[0] = D[3] = 1;
@@ -349,9 +349,6 @@ void calc_p10_n_x20(double& B1_return, double& B2_return, double P2_1, double P1
     double norm;
     double puffer;
 
-    // Так как область сходимости метода Ньютона маленькая, то мы можем не угадать с выбором стартового значения для конкретного альфа, поэтому
-    // разбиваем отрезок (от стартовой точки до искомой), нанпример, на 10 точек и показываем что метод Ньютона сход в каждой окрестоности этих точек (по непрерывности интеграла как функции от альфа),
-    // причем каждая такая открестность содержит центр предыдущей окрестности 
      for (int i = 1; i < 10; i ++ ) 
      {
 
@@ -360,36 +357,36 @@ void calc_p10_n_x20(double& B1_return, double& B2_return, double P2_1, double P1
     do
     {
         // решение итерационной процедуры Ньютона в многомерном случае в явном виде см скрин
-        B1 = B1 - (D[0] * P1_1 + D[1] * P2_1);
-        B2 = B2 - (D[2] * P1_1 + D[3] * P2_1);
+        B1 = B1 - (D[0] * P1_1 + D[1] * X2_1);
+        B2 = B2 - (D[2] * P1_1 + D[3] * X2_1);
         
         head = (Point*)malloc(sizeof(Point));
-        RungeKutta_sup(&head, B1, B2, a, P2_1, P1_1); // на каждом шаге p2(1), p1(1) меняются 
+        RungeKutta_sup(&head, B1, B2, a, X2_1, P1_1); // на каждом шаге x2(1), p1(1) меняются 
         clear_list(&head);
 
         head = (Point*)malloc(sizeof(Point));
-        RungeKutta_sup(&head, B1 - EPS1, B2, a, B1_minus_P, B1_minus_X);
+        RungeKutta_sup(&head, B1 - EPS1, B2, a, B1_minus_X, B1_minus_P);
         clear_list(&head);
 
         head = (Point*)malloc(sizeof(Point));
-        RungeKutta_sup(&head, B1 + EPS1, B2, a, B1_plus_P, B1_plus_X);
+        RungeKutta_sup(&head, B1 + EPS1, B2, a, B1_plus_X, B1_plus_P);
         clear_list(&head);
 
         head = (Point*)malloc(sizeof(Point));
-        RungeKutta_sup(&head, B1, B2 - EPS1, a, B2_minus_P, B2_minus_X);
+        RungeKutta_sup(&head, B1, B2 - EPS1, a, B2_minus_X, B2_minus_P);
         clear_list(&head);
 
         head = (Point*)malloc(sizeof(Point));
-        RungeKutta_sup(&head, B1, B2 + EPS1, a, B2_plus_P, B2_plus_X);
+        RungeKutta_sup(&head, B1, B2 + EPS1, a, B2_plus_X, B2_plus_P);
         clear_list(&head);
 
         // подсчет матрицы Якоби центральных производных 
-        D[0] = (B1_plus_X - B1_minus_X) / (2 * EPS1);
-        D[1] = (B2_plus_X - B2_minus_X) / (2 * EPS1);
-        D[2] = (B1_plus_P - B1_minus_P) / (2 * EPS1);
-        D[3] = (B2_plus_P - B2_minus_P) / (2 * EPS1);
+        D[0] = (B1_plus_P - B1_minus_P) / (2 * EPS1);
+        D[1] = (B2_plus_P - B2_minus_P) / (2 * EPS1);
+        D[2] = (B1_plus_X - B1_minus_X) / (2 * EPS1);
+        D[3] = (B2_plus_X - B2_minus_X) / (2 * EPS1);
         
-        norm = norma_fedorenko(D, P1_1 - 0., P2_1 - 0.); 
+        norm = norma_fedorenko(D, P1_1 - 0., X2_1 - 0.); 
         revers_matrix(D);
 
     } while (norm > EPS);
