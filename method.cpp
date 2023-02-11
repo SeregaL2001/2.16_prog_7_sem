@@ -349,6 +349,7 @@ void calc_p10_n_x20(double &B1_return, double &B2_return, double X2_1, double P1
     double norm;
     double puffer;
 
+    // цикл по альфа 
      for (int i = 1; i < 10; i ++ ) 
      {
 

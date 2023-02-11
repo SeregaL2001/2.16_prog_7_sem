@@ -16,7 +16,7 @@
 #endif
 
 #define NEWTON_METHOD_START_B1 -0.274772803
-#define NEWTON_METHOD_START_B2 -1.22565282
+#define NEWTON_METHOD_START_B2 -1.225652822
 
 typedef struct Point
 {
@@ -38,8 +38,6 @@ typedef struct Koef
 
 void push_back(Point **last, double t_, double x_, double p_); // добавление элемента в конец списка  
 void clear_list(Point **head); // очистка списка 
-void print_list(const Point *head); // печать списка в терминале 
-void fprint_list(const Point *head, FILE *fp); // печать списка в файл 
 
 void revers_matrix(double *M);
 double norma_fedorenko(double *J, double F0, double F1);
@@ -51,5 +49,5 @@ double norma_koef(Koef Y);
 
 void RungeKutta(Point **head, double B1, double B2, double &P2_0, double &X1_0, double &X2_1, double &P1_1, double alpha); // метод Рунге Кутты пятого порядка, с формулами построенными Инглэндом стр 31-32 Арушанян
 void RungeKutta_sup(Point** head, double B1, double B2, double alpha, double &X2_1, double &P1_1); // вспомогательный РК для метода Ньютона 
-void calc_p10_n_x20(double &B1_return, double &B2_return, double X2_1, double P1_1, double alpha); // поиск краевого условия методом пристрелки с помощью Ньютона
-double Integral(Point *head); // подсчет интеграла 
+void calc_p10_n_x20(double &B1_return, double &B2_return, double X2_1, double P1_1, double alpha); // поиск недостающих краевых пристрелкой методом Ньютона 
+double Integral(Point *head); 
